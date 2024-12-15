@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api'
+  baseURL: "http://localhost:3000/api",
 });
 
 interface Contact {
@@ -22,33 +22,35 @@ interface BulkMessagePayload {
 export const contactsApi = {
   // Listar todos os contatos
   list: async () => {
-    const response = await api.get<Contact[]>('/contacts');
+    const response = await api.get<Contact[]>("/contacts");
     return response.data;
   },
 
   // Criar um novo contato
   create: async (contact: Contact) => {
-    const response = await api.post<Contact>('/contacts', contact);
+    const response = await api.post<Contact>("/contacts", contact);
     return response.data;
   },
 
   // Importar múltiplos contatos
   bulkCreate: async (contacts: Contact[]) => {
-    const response = await api.post<Contact[]>('/contacts/bulk', contacts);
+    const response = await api.post<Contact[]>("/contacts/bulk", contacts);
     return response.data;
   },
 
   // Obter contatos por IDs
   getContactsByIds: async (ids: number[]) => {
-    const response = await api.get<Contact[]>(`/contacts/bulk?ids=${ids.join(',')}`);
+    const response = await api.get<Contact[]>(
+      `/contacts/bulk?ids=${ids.join(",")}`
+    );
     return response;
   },
 
   // Gerar URL de rastreamento
   getTrackingUrl: async (contactId: number) => {
-    const response = await api.post<{ url: string }>('/tracking-url', { 
+    const response = await api.post<{ url: string }>("/tracking-url", {
       contactId,
-      baseUrl: 'https://levelup.fi/palvelut/',
+      baseUrl: "http://localhost:3000/track",
     });
     return response.data.url;
   },
@@ -60,19 +62,19 @@ export const contactsApi = {
 
   // Obter estatísticas
   getStats: async () => {
-    const response = await api.get('/stats');
+    const response = await api.get("/stats");
     return response.data;
   },
 
   // Enviar mensagem em massa
   sendBulkMessage: async (payload: BulkMessagePayload) => {
-    const response = await api.post('/messages/bulk', payload);
+    const response = await api.post("/messages/bulk", payload);
     return response.data;
   },
 
   // Atualizar configurações SMTP
   updateSmtpConfig: async (config: any) => {
-    const response = await api.post('/settings/smtp', config);
+    const response = await api.post("/settings/smtp", config);
     return response.data;
-  }
+  },
 };

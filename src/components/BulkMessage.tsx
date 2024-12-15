@@ -28,7 +28,7 @@ export function BulkMessage() {
         try {
           const response = await contactsApi.getContactsByIds(ids);
           setContacts(response.data);
-        } catch (error) {
+        } catch {
           setStatusMessage('Virhe yhteystietojen lataamisessa');
         }
       }
@@ -42,7 +42,7 @@ export function BulkMessage() {
       const url = await contactsApi.getTrackingUrl(contacts[0].id);
       setTrackingUrl(url);
       setMessage(prev => prev + ` [URL]`);
-    } catch (error) {
+    } catch {
       setStatusMessage('Virhe seurantalinkin luomisessa');
     }
   };
@@ -51,13 +51,14 @@ export function BulkMessage() {
     e.preventDefault();
     setLoading(true);
     try {
+      console.log(contacts)
       await contactsApi.sendBulkMessage({
         contactIds: contacts.map(c => c.id),
         subject,
         message
       });
       setStatusMessage('Viesti lähetetty onnistuneesti!');
-      setTimeout(() => navigate('/contacts'), 2000);
+      setTimeout(() => navigate('/'), 2000);
     } catch (error) {
       setStatusMessage('Virhe viestin lähetyksessä');
     } finally {
@@ -73,7 +74,7 @@ export function BulkMessage() {
         </h3>
         <div className="mt-6">
           <button
-            onClick={() => navigate('/contacts')}
+            onClick={() => navigate('/')}
             className="btn-primary"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -88,7 +89,7 @@ export function BulkMessage() {
     <div className="max-w-2xl mx-auto space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
         <button
-          onClick={() => navigate('/contacts')}
+          onClick={() => navigate('/')}
           className="btn-secondary"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -98,9 +99,8 @@ export function BulkMessage() {
 
       {statusMessage && (
         <div className="animate-fade-in">
-          <div className={`p-4 rounded-lg ${
-            statusMessage.includes('Virhe') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-          }`}>
+          <div className={`p-4 rounded-lg ${statusMessage.includes('Virhe') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+            }`}>
             {statusMessage}
           </div>
         </div>

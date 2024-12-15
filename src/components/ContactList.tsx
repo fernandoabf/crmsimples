@@ -15,7 +15,7 @@ interface Contact {
 export function ContactList() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export function ContactList() {
         const data = await contactsApi.list();
         setContacts(data);
       } catch (error) {
-        setMessage('Virhe yhteystietojen lataamisessa');
+        setMessage({ type: 'error', text: 'Virhe yhteystietojen lataamisessa' });
         console.error('Error fetching contacts:', error);
       } finally {
         setLoading(false);
@@ -38,31 +38,31 @@ export function ContactList() {
     try {
       const url = await contactsApi.getTrackingUrl(contact.id);
       await navigator.clipboard.writeText(url);
-      setMessage('URL kopioitu leikepöydälle!');
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      setMessage('Virhe URL:n kopioinnissa');
-      setTimeout(() => setMessage(''), 3000);
+      setMessage({ type: 'success', text: 'URL kopioitu leikepöydälle!' });
+    } catch {
+      setMessage({ type: 'error', text: 'Virhe URL:n kopioinnissa' });
+    } finally {
+      setTimeout(() => setMessage(null), 3000);
     }
   };
 
-  const filteredContacts = contacts.filter(contact => 
-    contact.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contact.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contact.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contact.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredContacts = contacts.filter((contact) =>
+    [contact.firstName, contact.lastName, contact.company, contact.email]
+      .some((field) => field.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-indigo-600"></div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6 animate-fade-in">
+
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="relative w-full sm:w-96">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -81,18 +81,19 @@ export function ContactList() {
         </Link>
       </div>
 
+      {/* Feedback Message */}
       {message && (
-        <div className="animate-fade-in fixed top-4 right-4 max-w-sm">
-          <div className={`p-4 rounded-lg shadow-lg ${
-            message.includes('Virhe') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-          }`}>
-            {message}
-          </div>
+        <div
+          className={`fixed top-4 right-4 max-w-sm p-4 rounded-lg shadow-lg ${message.type === 'error' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+            }`}
+        >
+          {message.text}
         </div>
       )}
 
+      {/* Contacts Table */}
       <div className="table-container">
-        <table className="table">
+        <table className="table w-full">
           <thead>
             <tr>
               <th>ID</th>
@@ -104,39 +105,47 @@ export function ContactList() {
             </tr>
           </thead>
           <tbody>
-            {filteredContacts.map((contact) => (
-              <tr key={contact.id}>
-                <td>{contact.id}</td>
-                <td className="font-medium text-gray-900">
-                  {contact.firstName} {contact.lastName}
-                </td>
-                <td>{contact.company}</td>
-                <td>
-                  <a href={`mailto:${contact.email}`} className="text-indigo-600 hover:text-indigo-900">
-                    {contact.email}
-                  </a>
-                </td>
-                <td>{contact.phone}</td>
-                <td>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleCopyUrl(contact)}
-                      className="icon-button"
-                      title="Kopioi seurantalinkki"
-                    >
-                      <Copy className="h-5 w-5" />
-                    </button>
-                    <Link
-                      to={`/bulk-message?ids=${contact.id}`}
-                      className="icon-button"
-                      title="Lähetä viesti"
-                    >
-                      <Mail className="h-5 w-5" />
-                    </Link>
-                  </div>
+            {filteredContacts.length > 0 ? (
+              filteredContacts.map((contact) => (
+                <tr key={contact.id}>
+                  <td>{contact.id}</td>
+                  <td className="font-medium text-gray-900">
+                    {contact.firstName} {contact.lastName}
+                  </td>
+                  <td>{contact.company}</td>
+                  <td>
+                    <a href={`mailto:${contact.email}`} className="text-indigo-600 hover:text-indigo-900">
+                      {contact.email}
+                    </a>
+                  </td>
+                  <td>{contact.phone}</td>
+                  <td>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleCopyUrl(contact)}
+                        className="icon-button"
+                        title="Kopioi seurantalinkki"
+                      >
+                        <Copy className="h-5 w-5" />
+                      </button>
+                      <Link
+                        to={`/bulk-message?ids=${contact.id}`}
+                        className="icon-button"
+                        title="Lähetä viesti"
+                      >
+                        <Mail className="h-5 w-5" />
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="text-center text-gray-500 py-4">
+                  Ei löytynyt yhteystietoja
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

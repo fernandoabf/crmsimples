@@ -8,6 +8,7 @@ interface Contact {
   firstName: string;
   lastName: string;
   company: string;
+  businessId: string;
   email: string;
   phone: string;
 }
@@ -18,6 +19,7 @@ export function ContactForm() {
     firstName: '',
     lastName: '',
     company: '',
+    businessId: '',
     email: '',
     phone: ''
   });
@@ -28,11 +30,13 @@ export function ContactForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      await contactsApi.createContact(contact);
+      console.log(contact)
+      await contactsApi.create(contact);
       setMessage('Yhteystieto lisätty onnistuneesti!');
-      setTimeout(() => navigate('/contacts'), 2000);
+      setTimeout(() => navigate('/'), 2000);
     } catch (error) {
       setMessage('Virhe yhteystiedon lisäämisessä');
+      console.log('contact post error:' + error)
     } finally {
       setLoading(false);
     }
@@ -53,10 +57,10 @@ export function ContactForm() {
         header: true,
         complete: async (results) => {
           try {
-            await contactsApi.importContacts(results.data);
+            await contactsApi.bulkCreate(results.data as Contact[]);
             setMessage('Yhteystiedot tuotu onnistuneesti!');
-            setTimeout(() => navigate('/contacts'), 2000);
-          } catch (error) {
+            setTimeout(() => navigate('/'), 2000);
+          } catch {
             setMessage('Virhe yhteystietojen tuonnissa');
           }
         },
@@ -71,13 +75,13 @@ export function ContactForm() {
     <div className="max-w-2xl mx-auto space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
         <button
-          onClick={() => navigate('/contacts')}
+          onClick={() => navigate('/')}
           className="btn-secondary"
         >
           <ArrowLeft className="h-5 w-5" />
           Takaisin
         </button>
-        
+
         <div className="relative">
           <input
             type="file"
@@ -97,9 +101,8 @@ export function ContactForm() {
 
       {message && (
         <div className="animate-fade-in">
-          <div className={`p-4 rounded-lg ${
-            message.includes('Virhe') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-          }`}>
+          <div className={`p-4 rounded-lg ${message.includes('Virhe') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+            }`}>
             {message}
           </div>
         </div>
@@ -107,7 +110,7 @@ export function ContactForm() {
 
       <form onSubmit={handleSubmit} className="card space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">Uusi yhteystieto</h2>
-        
+
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div className="form-group">
             <label htmlFor="firstName" className="form-label">
@@ -118,7 +121,7 @@ export function ContactForm() {
               id="firstName"
               name="firstName"
               required
-              className="input-field"
+              className="input-field m-2"
               value={contact.firstName}
               onChange={handleChange}
             />
@@ -151,6 +154,21 @@ export function ContactForm() {
             required
             className="input-field"
             value={contact.company}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="form-group">
+
+          <label htmlFor="businessId" className="form-label">
+            Y-tunnus
+          </label>
+          <input
+            type="text"
+            id="businessId"
+            name="businessId"
+            className="input-field"
+            value={contact.businessId}
             onChange={handleChange}
           />
         </div>
